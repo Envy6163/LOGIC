@@ -18,11 +18,11 @@ public class DataManager : MonoBehaviour
         {
             Destroy(this.gameObject);
         }
-        Load();
+        LoadWithoutClear();
     }
     public void Save()
     {
-        SaveData data = new(GetComponentSaveDatas(),GetWireSaveDatas());
+        SaveData data = new(GetComponentSaveDatas(), GetWireSaveDatas());
         string sceneName = SceneManager.GetActiveScene().name;
         // ÐòÁÐ»¯Îª JSON
         string json = JsonUtility.ToJson(data, true);
@@ -34,6 +34,12 @@ public class DataManager : MonoBehaviour
         File.WriteAllText(filePath, json);
     }
     public void Load()
+    {
+        GridManager.Instance.components.Clear();
+        GridManager.Instance.wires.Clear();
+        LoadWithoutClear();
+    }
+    public void LoadWithoutClear()
     {
         string sceneName = SceneManager.GetActiveScene().name;
         string filePath = Path.Combine(Application.persistentDataPath, sceneName + "_SaveData.json");
@@ -50,8 +56,6 @@ public class DataManager : MonoBehaviour
             {
                 Destroy(obj.gameObject);
             }
-            GridManager.Instance.components.Clear();
-            GridManager.Instance.wires.Clear();
             LoadComponents(saveData);
             LoadWires(saveData);
         }
@@ -73,9 +77,9 @@ public class DataManager : MonoBehaviour
     private List<WireSaveData> GetWireSaveDatas()
     {
         List<WireSaveData> wireSaveDatas = new();
-        foreach(var obj in FindObjectsOfType<NewWire>())
+        foreach (var obj in FindObjectsOfType<NewWire>())
         {
-            wireSaveDatas.Add(new WireSaveData(obj.StartPosition, obj.TurningPosition, obj.EndPosition,obj.Positions));
+            wireSaveDatas.Add(new WireSaveData(obj.StartPosition, obj.TurningPosition, obj.EndPosition, obj.Positions));
         }
         return wireSaveDatas;
     }
@@ -86,7 +90,7 @@ public class DataManager : MonoBehaviour
             GameObject prefab = PrefabManager.Instance.GetPrefab(componentData.PrefabName);
             if (prefab != null)
             {
-                GameObject instance = Instantiate(prefab,componentData.Position,new Quaternion());
+                GameObject instance = Instantiate(prefab, componentData.Position, new Quaternion());
                 NewComponent component = instance.GetComponent<NewComponent>();
                 if (component == null)
                     Debug.LogFormat("component==null");
@@ -112,12 +116,12 @@ public class DataManager : MonoBehaviour
                 component.SetPositions(GridManager.Instance.GetGridPosition(componentData.Position));
                 GridManager.Instance.components.Add(component);
             }
-            
+
         }
     }
     private void LoadWires(SaveData data)
     {
-        foreach(var wireData in data.WireSaveDatas)
+        foreach (var wireData in data.WireSaveDatas)
         {
             GameObject obj = Instantiate(PrefabManager.Instance.GetPrefab("Wire"));
             WireDrawer.Instance.DrawWire(obj, wireData.StartPos, wireData.TurningPos, wireData.EndPos);
